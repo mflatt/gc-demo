@@ -75,15 +75,13 @@ static int count(struct node *n)
    exits: */
 int main(int argc, char **argv)
 {
-  struct node *init_n, *n;
-
   /* create one tree without intermediate garbage: */
-  init_n = make_tree(10);
+  struct node *init_n = make_tree(10);
   PUSH_STACK_POINTER(init_n);
 
   /* create a larger tree with lots of intermediate garbage: */
   create_garbage = 1;
-  n = make_tree(16);
+  struct node *n = make_tree(16);
 
   /* check the trees: */
   printf("%d\n", count(n) + count(init_n));

@@ -19,13 +19,10 @@ static int is_major;
 
 void collect_garbage()
 {
-  size_t need_size, new_size;
-  void *new_space;
-  struct node_plus_header *alloc_pos;
-
-  need_size = space_end - space_start;
+  size_t need_size = space_end - space_start;
   if (need_size < (gen1_space_end - gen1_space_next)) {
     /* Minor collection, since we have room in the gen1 space */
+    struct node_plus_header *alloc_pos;
     alloc_pos = (struct node_plus_header *)gen1_space_next;
 
     /* A minor collection (still) relies on having no references from
@@ -45,7 +42,8 @@ void collect_garbage()
     if (new_size < (gen1_prev_size * 2))
       new_size = gen1_prev_size * 2;
 
-    new_space = raw_malloc(new_size);
+    struct node_plus_header *alloc_pos;
+    void *new_space = raw_malloc(new_size);
     alloc_pos = (struct node_plus_header *)new_space;
     
     is_major = 1;
@@ -64,7 +62,7 @@ void collect_garbage()
   }
 
   /* Create a fresh new-generation space: */
-  new_space = raw_malloc(GEN0_SIZE);
+  void *new_space = raw_malloc(GEN0_SIZE);
 
   /* Clean up old new-generation space */
   if (space_start != 0)
