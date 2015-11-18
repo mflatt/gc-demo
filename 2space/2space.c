@@ -32,7 +32,9 @@ void collect_garbage()
   space_start = (uintptr_t)new_space;
   space_end = space_start + new_size;
   space_next = (uintptr_t)alloc_pos;
-  
+
+  /* Remember size after collection to be used as a guide for the next
+     space's size: */
   prev_size = space_next - space_start;
 }
 

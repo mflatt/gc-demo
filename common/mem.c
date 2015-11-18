@@ -1,5 +1,7 @@
-#include <stdlib.h>
+/* Provide wrappers for malloc() and free() that track current and
+   peak memory use. */
 
+#include <stdlib.h>
 #include "mem.h"
 
 size_t mem_use, peak_mem_use;

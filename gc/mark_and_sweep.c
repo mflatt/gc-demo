@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
-
 #include "../common/node.h"
 #include "../common/mem.h"
 #include "allocate.h"
@@ -26,13 +25,17 @@ struct node *allocate()
   return &nh->n;
 }
 
+/* Hold roots registered by the main program: */
 int num_roots = 0;
 struct node *roots[128];
 
+/* Allocation statistics: */
 int num_chunks, num_chunked_nodes, num_free_nodes;
 
+/* A linked list of alloction chunks: */
 struct gc_chunk *chunks = NULL;
 
+/* When a GC doesn't free up any memory, allocate another chunk */
 static void get_more_memory()
 {
   int i;
@@ -59,6 +62,7 @@ static void get_more_memory()
   num_free_nodes += NODES_PER_CHUNK;
 }
 
+/* A helper for mark_and_sweep_from_roots() */
 void mark(struct node *n)
 {
   if (n != NULL) {
@@ -67,12 +71,15 @@ void mark(struct node *n)
     
     if (!nh->marked) {
       nh->marked = 1;
+
+      /* Recur to keep referenced objects live: */
       mark(nh->n.left);
       mark(nh->n.right);
     }
   }
 }
 
+/* A garbage_collect() function calls this one */
 void mark_and_sweep_from_roots()
 {
   int i;

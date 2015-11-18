@@ -27,7 +27,12 @@ void collect_garbage()
   if (need_size < (gen1_space_end - gen1_space_next)) {
     /* Minor collection, since we have room in the gen1 space */
     alloc_pos = (struct node_plus_header *)gen1_space_next;
-    
+
+    /* A minor collection (still) relies on having no references from
+       old object to new objects; this is not a general-purpose GC. If
+       such references were allowed, we'd have to add them as
+       roots. */
+
     is_major = 0;
     copy_from_roots(&alloc_pos);
 

@@ -1,5 +1,4 @@
 #include <stdlib.h>
-
 #include "../common/node.h"
 #include "../common/mem.h"
 #include "allocate.h"

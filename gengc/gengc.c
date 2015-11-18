@@ -6,7 +6,10 @@
 #include "../gc/allocate.h"
 #include "../gc/mark_and_sweep.h"
 
+/* After a minor collection, move surving chunks into this
+   list, which will be ignored until a major collection: */
 struct gc_chunk *gen1_chunks;
+
 int num_gen1_chunks, last_major_gen1_chunks;
 
 void collect_garbage()
@@ -16,10 +19,9 @@ void collect_garbage()
   /* minor collection: */
   mark_and_sweep_from_roots();
 
-  /* Note that the minor collection above relies on
-     having no references from old object to new objects.
-     If such references were allowed, we'd have to
-     add them as roots. */
+  /* The minor collection above relies on having no references from
+     old object to new objects; this is not a general-purpose GC. If
+     such references were allowed, we'd have to add them as roots. */
   
   /* move non-empty chunks to old generation: */
   if (chunks) {
