@@ -1,0 +1,10 @@
+*.dSYM
+*~
+
+# Generated exeuctables:
+tree-2space
+tree-cgc
+tree-gc
+tree-gen2space
+tree-gengc
+tree-manual
