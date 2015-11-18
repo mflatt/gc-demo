@@ -3,15 +3,15 @@ collection. In subdirectories:
 
  * manual = manual allocion and deallocation (i.e., not GC)
  
- * gc = basic mark-and-sweep with a cooperative C program
+ * gc = basic mark-and-sweep for a cooperative C program
 
- * cgc = conservative mark-and-sweep with an uncooperative C program
+ * cgc = conservative mark-and-sweep for an uncooperative C program
 
  * gengc = generational mark-and-sweep
 
  * 2space = 2-space copying GC; allocated objects move during a GC
  
- * gen2space = 2-space copying GC
+ * gen2space = generational 2-space copying GC
 
 The "common/tree.c" program provides a synthetic workload of
 allocating a binary tree up to some depth, optionally creating and
