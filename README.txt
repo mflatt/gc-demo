@@ -1,7 +1,7 @@
 This code demonstrates basic implementation techniques for garbage
 collection. In subdirectories:
 
- * manual = manual allocion and deallocation (i.e., not GC)
+ * manual = manual allocation and deallocation (i.e., not GC)
  
  * gc = basic mark-and-sweep for a cooperative C program
 
