@@ -1,5 +1,5 @@
 
-BINS = tree-manual tree-gc tree-cgc tree-gengc tree-2space tree-gen2space
+BINS = tree-manual tree-refcount tree-gc tree-cgc tree-gengc tree-2space tree-gen2space
 
 all: $(BINS)
 
@@ -9,10 +9,13 @@ clean:
 COMMON_C = common/tree.c common/mem.c
 COMMON_DEP = $(COMMON_C) common/node.h common/mem.h
 
-CFLAGS = -O2 -g
+CFLAGS = -O0 -g
 
 tree-manual: $(COMMON_DEP) manual/allocate.h manual/manual.c
 	$(CC) $(CFLAGS) -o tree-manual -Imanual $(COMMON_C) manual/manual.c
+
+tree-refcount: $(COMMON_DEP) refcount/allocate.h refcount/refcount.c
+	$(CC) $(CFLAGS) -o tree-refcount -Irefcount $(COMMON_C) refcount/refcount.c
 
 tree-gc: $(COMMON_DEP) gc/allocate.h gc/gc.c gc/mark_and_sweep.c gc/mark_and_sweep.h
 	$(CC) $(CFLAGS) -o tree-gc -Igc $(COMMON_C) gc/gc.c gc/mark_and_sweep.c

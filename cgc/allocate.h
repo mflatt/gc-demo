@@ -1,9 +1,6 @@
 
 /* Conservative GC means that the program doesn't have to
-   cooperate: */
-#define MANUAL_DEALLOCATE 0
-#define PUSH_STACK_POINTER(var) /* nothing */
-#define POP_STACK_POINTER()     /* nothing */
+   cooperate, so all macros are defaults */
 
 struct node *allocate();
 

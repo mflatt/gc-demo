@@ -1,7 +1,6 @@
 
-#define MANUAL_DEALLOCATE 0
 #define PUSH_STACK_POINTER(var) root_addrs[num_roots++] = &var
-#define POP_STACK_POINTER()     --num_roots
+#define POP_STACK_POINTER(var)  --num_roots
 
 /* Since a GC moves allocated objects, we need variable addresses o be
    registered, not just the value of each variable */

@@ -10,6 +10,9 @@
    `cc -I...`: */
 #include "allocate.h"
 
+/* Defaults for macros not defined by "allocate.h" */
+#include "default.h"
+
 static void destroy_tree(struct node *n);
 
 static int create_garbage; /* a flag for make_tree() */
@@ -24,7 +27,10 @@ static struct node *make_tree(int depth)
   else {
     if (create_garbage) {
       /* create and destroy a junk branch */
-      destroy_tree(make_tree(depth-1));
+      struct node *n = make_tree(depth-1);
+      PUSH_STACK_POINTER(n);
+      destroy_tree(n);
+      POP_STACK_POINTER(n);
     }
 
     /* Left subtree */
@@ -37,11 +43,13 @@ static struct node *make_tree(int depth)
     
     /* New node */
     struct node *t = allocate();
-    t->left = l;
-    t->right = r;
+    PUSH_STACK_POINTER(t);
+    SET_NODE(t->left, l);
+    SET_NODE(t->right, r);
 
-    POP_STACK_POINTER();
-    POP_STACK_POINTER();
+    POP_STACK_POINTER(r);
+    POP_STACK_POINTER(l);
+    POP_STACK_RETURN_POINTER(t);
 
     return t;
   }
@@ -82,12 +90,16 @@ int main(int argc, char **argv)
   /* create a larger tree with lots of intermediate garbage: */
   create_garbage = 1;
   struct node *n = make_tree(16);
+  PUSH_STACK_POINTER(n);
 
   /* check the trees: */
   printf("%d\n", count(n) + count(init_n));
   
   destroy_tree(n);
   destroy_tree(init_n);
+
+  POP_STACK_POINTER(n);
+  POP_STACK_POINTER(init_n);
 
   printf("Peak memory use: %ld\n", peak_mem_use);
 

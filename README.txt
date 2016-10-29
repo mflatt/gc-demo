@@ -2,6 +2,8 @@ This code demonstrates basic implementation techniques for garbage
 collection. In subdirectories:
 
  * manual = manual allocation and deallocation (i.e., not GC)
+
+ * refcount = reference counting (also not GC)
  
  * gc = basic mark-and-sweep for a cooperative C program
 
