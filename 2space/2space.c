@@ -10,12 +10,12 @@ static uintptr_t prev_size = 1024;
 void collect_garbage()
 {
   /* Set up new space */
-  size_t new_size = (space_end - space_start + sizeof(struct node_plus_header));
+  size_t new_size = (space_end - space_start + sizeof(struct gc_node));
   if (new_size < (prev_size * 2))
     new_size = prev_size * 2;
   
   void *new_space = raw_malloc(new_size);
-  struct node_plus_header *alloc_pos = new_space;
+  struct gc_node *alloc_pos = new_space;
 
   /* Copy into new space */
   copy_from_roots(&alloc_pos);

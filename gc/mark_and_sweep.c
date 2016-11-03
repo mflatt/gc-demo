@@ -7,15 +7,15 @@
 #include "mark_and_sweep.h"
 
 static void get_more_memory();
-struct node_plus_header *free_list = NULL;
+struct gc_node *free_list = NULL;
 
 struct node *allocate()
 {
-  struct node_plus_header *nh;
+  struct gc_node *nh;
   
   if (!free_list) {
     collect_garbage();
-    while (!free_list)
+    if (!free_list)
       get_more_memory();
   }
 
@@ -27,7 +27,7 @@ struct node *allocate()
 
 /* Hold roots registered by the main program: */
 int num_roots = 0;
-struct node *roots[128];
+struct node **root_addrs[128];
 
 /* Allocation statistics: */
 int num_chunks, num_chunked_nodes, num_free_nodes;
@@ -45,11 +45,11 @@ static void get_more_memory()
   chunks = c;
   num_chunks++;
 
-  c->mem = raw_malloc(NODES_PER_CHUNK * sizeof(struct node_plus_header));
+  c->mem = raw_malloc(NODES_PER_CHUNK * sizeof(struct gc_node));
 
   /* Add everything in the new chunk to the free list: */
   for (int i = 0; i < NODES_PER_CHUNK; i++) {
-    struct node_plus_header *nh = c->mem + i;
+    struct gc_node *nh = c->mem + i;
     nh->next_free = free_list;
     free_list = nh;
   }
@@ -59,11 +59,11 @@ static void get_more_memory()
 }
 
 /* A helper for mark_and_sweep_from_roots() */
-void mark(struct node *n)
+static void mark(struct node *n)
 {
   if (n != NULL) {
-    struct node_plus_header *nh;
-    nh = (struct node_plus_header *)((char *)n - offsetof(struct node_plus_header, n));
+    struct gc_node *nh;
+    nh = NODE_TO_GC(n);
     
     if (!nh->marked) {
       nh->marked = 1;
@@ -75,24 +75,18 @@ void mark(struct node *n)
   }
 }
 
-/* A garbage_collect() function calls this one */
-void mark_and_sweep_from_roots()
+/* Also a helper for mark_and_sweep_from_roots() */
+static void reset_all_marks()
 {
-  // printf("Collect garbage\n");
-
-  /* reset all marks */
   for (struct gc_chunk *c = chunks; c; c = c->next) {
     for (int i = 0; i < NODES_PER_CHUNK; i++) {
       c->mem[i].marked = 0;
     }
   }
+}
 
-  /* mark (i.e., find all referenced) */
-  for (int i = 0; i < num_roots; i++) {
-    mark(roots[i]);
-  }
-
-  /* sweep (i.e., add unmarked to the free list) */
+static void sweep()
+{
   free_list = NULL;
   for (struct gc_chunk *c = chunks; c; c = c->next) {
     c->num_marked_nodes = 0;
@@ -105,4 +99,19 @@ void mark_and_sweep_from_roots()
         c->num_marked_nodes++;
     }
   }
+}
+
+/* A garbage_collect() function calls this one */
+void mark_and_sweep_from_roots()
+{
+  // printf("Collect garbage\n");
+
+  reset_all_marks();
+
+  /* mark (i.e., find all referenced) */
+  for (int i = 0; i < num_roots; i++)
+    mark(*(root_addrs[i]));
+
+  /* sweep (i.e., add unmarked to the free list) */
+  sweep();
 }

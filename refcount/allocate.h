@@ -1,14 +1,14 @@
 
-#define PUSH_STACK_POINTER(var) refcount_inc(var)
-#define POP_STACK_POINTER(var)  refcount_dec(var)
+/* For a variable that is going out of scope: */
+#define UNSET_NODE(var)       refcount_dec(var)
 
 /* For a variable that holds the return value: */
-#define POP_STACK_RETURN_POINTER(var) refcount_dec_no_free(var)
+#define UNSET_RETURN_NODE(var) refcount_dec_no_free(var)
 
-/* Before setting a field, drop the refcount on the old
-   field's vale. After setting a field, increment the
-   refcount on the new field value. */
-#define SET_NODE(field, val)    (refcount_dec(field), refcount_inc(field = val))
+/* Before setting a variable field, drop the refcount on the old
+   value. After setting a variable or field, increment the refcount on
+   the new value. */
+#define SET_NODE(var, val)    (refcount_dec(var), refcount_inc(var = val))
 
 struct node *allocate();
 void refcount_inc(struct node *p);

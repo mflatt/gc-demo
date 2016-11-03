@@ -27,29 +27,38 @@ static struct node *make_tree(int depth)
   else {
     if (create_garbage) {
       /* create and destroy a junk branch */
-      struct node *n = make_tree(depth-1);
+      struct node *n = NULL;
       PUSH_STACK_POINTER(n);
+      SET_NODE(n, make_tree(depth-1));
       destroy_tree(n);
+      UNSET_NODE(n);
       POP_STACK_POINTER(n);
     }
-
+    
     /* Left subtree */
-    struct node *l = make_tree(depth-1);
+    struct node *l = NULL;
     PUSH_STACK_POINTER(l);
+    SET_NODE(l, make_tree(depth-1));
     
     /* Right subtree */
-    struct node *r = make_tree(depth-1);
+    struct node *r = NULL;
     PUSH_STACK_POINTER(r);
+    SET_NODE(r, make_tree(depth-1));
     
     /* New node */
-    struct node *t = allocate();
+    struct node *t = NULL;
     PUSH_STACK_POINTER(t);
+    SET_NODE(t, allocate());
     SET_NODE(t->left, l);
+    UNSET_NODE(l);
     SET_NODE(t->right, r);
+    UNSET_NODE(r);
 
+    UNSET_RETURN_NODE(t);
+
+    POP_STACK_POINTER(t);
     POP_STACK_POINTER(r);
     POP_STACK_POINTER(l);
-    POP_STACK_RETURN_POINTER(t);
 
     return t;
   }
@@ -89,14 +98,18 @@ int main(int argc, char **argv)
 
   /* create a larger tree with lots of intermediate garbage: */
   create_garbage = 1;
-  struct node *n = make_tree(16);
+  struct node *n = NULL;
   PUSH_STACK_POINTER(n);
+  SET_NODE(n, make_tree(16));
 
   /* check the trees: */
   printf("%d\n", count(n) + count(init_n));
   
   destroy_tree(n);
   destroy_tree(init_n);
+
+  UNSET_NODE(n);
+  UNSET_NODE(init_n);
 
   POP_STACK_POINTER(n);
   POP_STACK_POINTER(init_n);

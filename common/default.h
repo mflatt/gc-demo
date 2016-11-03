@@ -5,23 +5,21 @@
 #endif
 
 /* A client uses PUSH_STACK_POINTER() and POP_STACK_POINTER() to
-   report when local variable sbecome live and go away,
+   report when local variables become live and go away,
    respectively. */
 #ifndef PUSH_STACK_POINTER
 # define PUSH_STACK_POINTER(var) /* nothing */
 # define POP_STACK_POINTER(var)  /* nothing */
 #endif
 
-/* Use POP_STACK_RETURN_POINTER for a variable that
-   holds a function's return address, in case the
-   allocator needs to know when a value is being
-   returned. */
-#ifndef POP_STACK_RETURN_POINTER
-# define POP_STACK_RETURN_POINTER(var) POP_STACK_POINTER(var)
-#endif
-
-/* Use SET_NODE() to assign to a field, in case the allocator needs to
-   know about asignments. */
+/* Use SET_NODE() to assign to a variable or field, in case the
+   allocator needs to know about asignments. Use UNSET_NODE()
+   when a variable stops using a pointer because it goes out
+   of scope, and use UNSET_RETURN_NODE() for a variable that is
+   going out of scope but holds a pointer result (which must
+   be immediately claimed by a caller). */
 #ifndef SET_NODE
-# define SET_NODE(field, val) field = val
+# define SET_NODE(var, val)     var = val
+# define UNSET_NODE(var)        /* nothing */
+# define UNSET_RETURN_NODE(var) /* nothing */
 #endif

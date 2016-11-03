@@ -31,7 +31,7 @@ void collect_garbage()
       next = c->next;
       if (c->num_marked_nodes == 0) {
         /* This chunk is empty, so free it */
-        raw_free(c->mem, NODES_PER_CHUNK * sizeof(struct node_plus_header));
+        raw_free(c->mem, NODES_PER_CHUNK * sizeof(struct gc_node));
         raw_free(c, sizeof(struct gc_chunk));
         if (!prev_c)
           chunks = next;

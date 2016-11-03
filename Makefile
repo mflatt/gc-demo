@@ -9,7 +9,7 @@ clean:
 COMMON_C = common/tree.c common/mem.c
 COMMON_DEP = $(COMMON_C) common/node.h common/mem.h
 
-CFLAGS = -O0 -g
+CFLAGS = -O2 -g
 
 tree-manual: $(COMMON_DEP) manual/allocate.h manual/manual.c
 	$(CC) $(CFLAGS) -o tree-manual -Imanual $(COMMON_C) manual/manual.c

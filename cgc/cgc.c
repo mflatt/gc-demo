@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include <stddef.h>
 
 #include "../common/node.h"
 #include "../gc/allocate.h"
@@ -35,6 +36,23 @@ int call_original_main(int argc, char **argv)
   return original_main(argc, argv);
 }
 
+static int looks_like_allocated(struct gc_node *p)
+{
+  /* Walk through chunks, checking the pointer range */
+  for (struct gc_chunk *c = chunks; c; c = c->next) {
+    if ((p >= c->mem)
+        && (p <= (c->mem + NODES_PER_CHUNK))) {
+      /* looks like a pointer; make sure it matches a `gc_node`
+         start position */
+      uintptr_t delta = ((char *)p - (char *)c->mem);
+      if ((delta % sizeof(struct gc_node)) == offsetof(struct gc_node, n))
+        return 1;
+    }
+  }
+
+  return 0;
+}
+
 static void find_roots()
 {
   num_roots = 0;
@@ -45,24 +63,9 @@ static void find_roots()
   void **stack_now = (void **)&stack_now;
 
   /* Scan the stack for pointers */
-  while ((uintptr_t)stack_now < (uintptr_t)stack_init) {
-    void *p = *stack_now;
-
-    /* Walk through chunks, checking the pointer range */
-    for (struct gc_chunk *c = chunks; c; c = c->next) {
-      if (((uintptr_t)p >= (uintptr_t)c->mem)
-          && ((uintptr_t)p <= (uintptr_t)(c->mem + NODES_PER_CHUNK))) {
-        /* looks like a pointer; round down to `node_plus_header` start
-         so that we're looking at the start of the object */
-        uintptr_t delta = ((uintptr_t)p - (uintptr_t)c->mem);
-        if (delta % sizeof(struct node_plus_header)) {
-          delta -= (delta % sizeof(struct node_plus_header));
-          p = (void *)((uintptr_t)c->mem + delta);
-        }
-        roots[num_roots++] = &((struct node_plus_header *)p)->n;
-      }
-    }
-    
+  while ((void *)stack_now < stack_init) {
+    if (looks_like_allocated(*stack_now))
+      root_addrs[num_roots++] = (struct node **)stack_now;
     stack_now++;
   }
 }

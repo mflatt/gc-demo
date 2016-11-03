@@ -1,15 +1,17 @@
 /* Every allocated object needs a header for
    the GC to use: */
-struct node_plus_header {
+struct gc_node {
   union {
     int marked;
-    struct node_plus_header *next_free;
+    struct gc_node *next_free;
   };
   struct node n;
 };
 
+#define NODE_TO_GC(p) ((struct gc_node *)((char *)(p) - offsetof(struct gc_node, n)))
+
 /* List of available nodes for allocation: */
-extern struct node_plus_header *free_list;
+extern struct gc_node *free_list;
 
 extern int num_free_nodes;
 
@@ -21,7 +23,7 @@ extern int num_free_nodes;
 
 struct gc_chunk {
   struct gc_chunk *next;
-  struct node_plus_header *mem;
+  struct gc_node *mem;
   int num_marked_nodes;
 };
 

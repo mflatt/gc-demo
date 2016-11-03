@@ -10,6 +10,8 @@ struct rc_node {
   struct node n;
 };
 
+#define NODE_TO_RC(p) ((struct rc_node *)((char *)(p) - offsetof(struct rc_node, n)))
+
 struct node *allocate()
 {
   /* A node is alloctaed with a refcount of 0, so the
@@ -26,9 +28,7 @@ void refcount_inc(struct node *p)
 {
   if (p) {
     /* Increment the reference count */
-    struct rc_node *rn;
-    rn = (struct rc_node *)((char *)p - offsetof(struct rc_node, n));
-    rn->count++;
+    NODE_TO_RC(p)->count++;
   }
 }
 
@@ -36,8 +36,7 @@ void refcount_dec(struct node *p)
 {
   if (p) {
     /* Decrement the reference count, and free if it does to zero */
-    struct rc_node *rn;
-    rn = (struct rc_node *)((char *)p - offsetof(struct rc_node, n));
+    struct rc_node *rn = NODE_TO_RC(p);
     if (--rn->count == 0) {
       refcount_dec(rn->n.left);
       refcount_dec(rn->n.right);
@@ -52,8 +51,6 @@ void refcount_dec_no_free(struct node *p)
     /* Decrement the reference count without freeing; used
        to return an allocated object from a function, so
        that the caller can assume ownership. */
-    struct rc_node *rn;
-    rn = (struct rc_node *)((char *)p - offsetof(struct rc_node, n));
-    --rn->count;
+    --NODE_TO_RC(p)->count;
   }
 }

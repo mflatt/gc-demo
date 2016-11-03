@@ -15,11 +15,11 @@ uintptr_t space_next;
 
 struct node *allocate()
 {
-  if (space_next + sizeof(struct node_plus_header) > space_end)
+  if (space_next + sizeof(struct gc_node) > space_end)
     collect_garbage();
 
-  struct node_plus_header *p = (struct node_plus_header *)space_next;
-  space_next += sizeof(struct node_plus_header);
+  struct gc_node *p = (struct gc_node *)space_next;
+  space_next += sizeof(struct gc_node);
 
   p->forwarded = 0;
 
@@ -34,38 +34,49 @@ int num_roots;
 /* First argument is object to mark/copy, second argument is the
    address of an allocation pointer into the new space */
 static void copy_or_forward(struct node **addr,
-                            struct node_plus_header **alloc_pos_ptr)
+                            struct gc_node **alloc_pos_ptr)
 {
   if (is_allocated(*addr)) {
-    struct node_plus_header *nh;
-    nh = (struct node_plus_header *)((char *)*addr - offsetof(struct node_plus_header, n));
+    struct gc_node *nh;
+    nh = NODE_TO_GC(*addr);
     
     if (nh->forwarded) {
       /* Object already copied */
       *addr = nh->forward_to;
     } else {
       /* Allocate a copy: */
-      struct node_plus_header *nh2;
+      struct gc_node *nh2;
       nh2 = *alloc_pos_ptr;
       (*alloc_pos_ptr)++;
-      memcpy(nh2, nh, sizeof(struct node_plus_header));
+      memcpy(nh2, nh, sizeof(struct gc_node));
 
       /* Mark old location as copied and set forwarding pointer */
       nh->forwarded = 1;
       nh->forward_to = &nh2->n;
       *addr = &nh2->n;
-
-      /* Recur to keep referenced objects live: */
-      copy_or_forward(&nh2->n.left, alloc_pos_ptr);
-      copy_or_forward(&nh2->n.right, alloc_pos_ptr);
     }
   }
 }
 
-/* Argument is the address of a pointer into the new space: */
-void copy_from_roots(struct node_plus_header **alloc_pos_ptr)
+static void traverse_copied(struct gc_node *traverse_ptr,
+                            struct gc_node **alloc_pos_ptr)
 {
+  /* Iterate through new space to copy : */
+  while (traverse_ptr < *alloc_pos_ptr) {
+    copy_or_forward(&traverse_ptr->n.left, alloc_pos_ptr);
+    copy_or_forward(&traverse_ptr->n.right, alloc_pos_ptr);
+    traverse_ptr++;
+  }
+}
+
+/* Argument is the address of a pointer into the new space: */
+void copy_from_roots(struct gc_node **alloc_pos_ptr)
+{
+  struct gc_node *init_ptr = *alloc_pos_ptr;
+  
   for (int i = 0; i < num_roots; i++) {
     copy_or_forward(root_addrs[i], alloc_pos_ptr);
   }
+
+  traverse_copied(init_ptr, alloc_pos_ptr);
 }
