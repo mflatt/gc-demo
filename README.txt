@@ -27,6 +27,8 @@ sizes.
 
 
 For simplicity all allocations are for a single datatype, `struct
-node` as declared in "common/mem.h". As a further simplification (for
-generational GCs), allocated objects refer only to objects allocated
-that were earlier.
+node` as declared in "common/mem.h". The conservative collector does
+not support interior pointers (i.e., pointers that are not to the
+start of the object). As a further simplification (for generational
+GCs), allocated objects refer only to objects allocated that were
+earlier.
