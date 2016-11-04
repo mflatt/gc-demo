@@ -32,3 +32,8 @@ not support interior pointers (i.e., pointers that are not to the
 start of the object). As a further simplification (for generational
 GCs), allocated objects refer only to objects allocated that were
 earlier.
+
+
+Videos that walk though parts of the implementation:
+
+ https://www.youtube.com/playlist?list=PLbdXd8eufjyVCrWF-obj8_BbyU5vEF8Jw
