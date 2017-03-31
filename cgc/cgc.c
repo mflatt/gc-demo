@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <stddef.h>
+#include <setjmp.h>
 
 #include "../common/node.h"
 #include "../gc/allocate.h"
@@ -9,15 +10,24 @@ extern int original_main(int argc, char **argv);
 
 /* The "noinline" attributes here ensure that stack frames
    are pushed as these functions are called: */
-static void find_roots() __attribute__ ((noinline));
+static void find_roots(jmp_buf env) __attribute__ ((noinline));
 static int call_original_main(int argc, char **argv) __attribute__ ((noinline));
 
 static void *stack_init;
 
 void collect_garbage()
 {
-  find_roots();
-  mark_and_sweep_from_roots();
+  /* Using setjmp() with a stack-allocated `env` ensures that any
+    callee-saved register values are moved onto the stack. Pass
+    `&env` to fint_roots() just to make sure it stays on the stack.*/
+  jmp_buf env;
+  if (setjmp(env)) {
+    /* Register a stack location as a root when it seems to have a
+       pointer value: */
+    find_roots(env);
+    /* Normal GC: */
+    mark_and_sweep_from_roots();
+  }
 }
 
 int main(int argc, char **argv)
@@ -53,7 +63,7 @@ static int looks_like_allocated(struct gc_node *p)
   return 0;
 }
 
-static void find_roots()
+static void find_roots(jmp_buf env)
 {
   num_roots = 0;
 
