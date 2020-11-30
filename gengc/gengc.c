@@ -42,7 +42,6 @@ void collect_garbage()
           prev_c->next = c;
         prev_c = c;
       }
-      c = next;
     }
 
     if (prev_c) {
